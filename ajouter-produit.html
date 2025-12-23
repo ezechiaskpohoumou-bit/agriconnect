@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajouter un Produit - AgriConnect</title>
+    <style>
+        body { font-family: sans-serif; padding: 50px; background: #e9ecef; }
+        .form-container { background: white; padding: 30px; border-radius: 8px; max-width: 400px; margin: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; background: #28a745; color: white; border: none; padding: 12px; cursor: pointer; font-size: 16px; border-radius: 4px; }
+        button:hover { background: #218838; }
+        a { display: block; text-align: center; margin-top: 15px; color: #666; text-decoration: none; }
+    </style>
+</head>
+<body>
+<nav style="background: #27ae60; padding: 15px; display: flex; justify-content: space-around; align-items: center;">
+    <a href="/" style="color: white; text-decoration: none; font-weight: bold; font-size: 20px;">🚜 AgriConnect</a>
+    <div>
+        <a href="/" style="color: white; text-decoration: none; margin: 0 15px;">Marché</a>
+        <a href="/ajouter-produit.html" style="color: white; text-decoration: none; margin: 0 15px;">Vendre</a>
+        <a href="/login.html" id="nav-login" style="color: white; text-decoration: none; margin: 0 15px;">Connexion</a>
+        <span id="user-name" style="color: #f1c40f; font-weight: bold; margin-left: 15px;"></span>
+    </div>
+</nav>
+<div class="form-container">
+    <h2>🍎 Nouveau Produit</h2>
+    <form id="productForm">
+        <input type="text" id="nom" placeholder="Nom du produit (ex: Igname)" required>
+        <textarea id="description" placeholder="Description..."></textarea>
+        <input type="number" id="prix" placeholder="Prix (FCFA)" required>
+        <input type="text" id="unite" placeholder="Unité (ex: kg, sac, lot)" required>
+        <input type="number" id="quantite" placeholder="Quantité en stock" required>
+        <input type="text" id="agriculteurId">
+        
+        <button type="submit">Mettre en vente</button>
+    </form>
+    <a href="/">⬅ Retour au marché</a>
+</div>
+
+<script>
+    // On récupère l'ID stocké lors de la connexion
+const savedId = localStorage.getItem('userId');
+
+// Si l'utilisateur n'est pas connecté, on le renvoie vers le login
+if (!savedId) {
+    alert("Merci de vous connecter d'abord !");
+    window.location.href = "login.html";
+} else {
+    // On remplit automatiquement le champ caché
+    document.getElementById('agriculteurId').value = savedId;
+}
+    document.getElementById('productForm').addEventListener('submit', async (e) => {
+        e.preventDefault(); // Empêche la page de se recharger
+
+        const donnees = {
+            nom: document.getElementById('nom').value,
+            description: document.getElementById('description').value,
+            prix: document.getElementById('prix').value,
+            unite: document.getElementById('unite').value,
+            quantite: document.getElementById('quantite').value,
+            image: document.getElementById('image').value,
+            agriculteurId: document.getElementById('agriculteurId').value
+        };
+    function filtrerParCategorie(cat) {
+         if (cat === 'Tous') {
+             afficherProduits(tousLesProduits);
+         } else {
+             const filtres = tousLesProduits.filter(p => p.categorie === cat);
+             afficherProduits(filtres);
+         }
+    }
+        const response = await fetch('/api/products/add', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('token') // On présente le badge !
+            },
+            body: JSON.stringify(donnees)
+        });
+
+        const resultat = await response.json();
+        
+        if (response.ok) {
+            alert("Bravo ! Produit ajouté au marché.");
+            window.location.href = "/"; // Redirige vers l'accueil
+        } else {
+            alert("Erreur : " + resultat.erreur);
+        }
+    });
+   
+</script>
+
+</body>
+</html>
