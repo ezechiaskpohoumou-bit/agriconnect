@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion - AgriConnect</title>
+    <style>
+        body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f0f2f5; }
+        .login-card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; background: #27ae60; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .error { color: red; font-size: 14px; margin-bottom: 10px; display: none; }
+    </style>
+</head>
+<body>
+<nav style="background: #27ae60; padding: 15px; display: flex; justify-content: space-around; align-items: center;">
+    <a href="/" style="color: white; text-decoration: none; font-weight: bold; font-size: 20px;">🚜 AgriConnect</a>
+    <div>
+        <a href="/" style="color: white; text-decoration: none; margin: 0 15px;">Marché</a>
+        <a href="/ajouter-produit.html" style="color: white; text-decoration: none; margin: 0 15px;">Vendre</a>
+        <a href="/login.html" id="nav-login" style="color: white; text-decoration: none; margin: 0 15px;">Connexion</a>
+        <span id="user-name" style="color: #f1c40f; font-weight: bold; margin-left: 15px;"></span>
+    </div>
+</nav>
+<div class="login-card">
+    <h2>🔑 Connexion</h2>
+    <div id="error-msg" class="error"></div>
+    <form id="loginForm">
+        <input type="email" id="email" placeholder="Email (ex: jean@agri.com)" required>
+        <input type="password" id="motDePasse" placeholder="Mot de passe" required>
+        <button type="submit">Se connecter</button>
+    </form>
+    <p style="text-align:center"><small>Pas encore de compte ? Contactez l'administrateur.</small></p>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const errorDiv = document.getElementById('error-msg');
+        
+        const credentials = {
+            email: document.getElementById('email').value,
+            motDePasse: document.getElementById('motDePasse').value
+        };
+        // ... dans ton fetch de login
+        const resultat = await response.json();
+
+            if (response.ok) {
+                   // On enregistre tout ce dont on a besoin pour le design dynamique
+                   localStorage.setItem('token', resultat.token);
+                   localStorage.setItem('userId', resultat.userId);
+                   localStorage.setItem('userName', resultat.nom); // Nouveau
+                   localStorage.setItem('userPhone', resultat.telephone); // Nouveau
+
+                   alert("Bienvenue " + resultat.nom);
+                   window.location.href = "dashboard.html"; // Redirection directe vers l'espace pro
+            }
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(credentials)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // ✅ LE MOMENT CLÉ : On stocke le Token et l'ID dans le navigateur
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('userId', data.utilisateur.id);
+                localStorage.setItem('userName', data.utilisateur.nom);
+
+                alert("Bonjour " + data.utilisateur.nom + " ! Redirection...");
+                window.location.href = "/"; // Retour à l'accueil
+            } else {
+                errorDiv.style.display = 'block';
+                errorDiv.innerText = data.erreur || "Erreur de connexion";
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    });
+</script>
+
+</body>
+</html>
