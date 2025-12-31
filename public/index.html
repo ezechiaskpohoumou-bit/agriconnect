@@ -229,24 +229,51 @@
             majAffichagePanier();
         }
 
-        function envoyerCommandeWhatsApp() {
+        async function finaliserLaCommande() {
             if (panier.length === 0) return;
 
-            // On prend le téléphone du premier vendeur pour l'exemple
-            const telVendeur = panier[0].tel || "22500000000"; 
-    
-            let message = "Bonjour AgriConnect ! Je souhaite commander :\n\n";
-             panier.forEach(item => {
-                 message += `- ${item.nom} (x${item.quantite}) : ${item.prix * item.quantite} FCFA\n`;
-            });
-    
-            const total = panier.reduce((sum, item) => sum + (item.prix * item.quantite), 0);
-            message += `\n💰 *TOTAL : ${total} FCFA*`;
-            message += `\n\nMerci de confirmer la disponibilité !`;
+            const token = localStorage.getItem('userToken'); // On récupère le badge de connexion
+            if (!token) {
+                alert("Vous devez être connecté pour commander !");
+                window.location.href = "login.html";
+                return;
+            }
 
-            const url = `https://wa.me/${telVendeur}?text=${encodeURIComponent(message)}`;
-            window.open(url, '_blank');
-        }
+            // Préparation des données pour ton serveur
+             const commandeData = {
+                 acheteurId: localStorage.getItem('userId'),
+                 items: panier.map(item => ({
+                     produitId: item.id,
+                     quantite: item.quantite
+                 }))
+             };
+
+             try {
+                 const response = await fetch('/api/orders', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                         'Authorization': `Bearer ${token}`
+                     },
+                     body: JSON.stringify(commandeData)
+                 });
+
+                 const resultat = await response.json();
+
+                if (response.ok) {
+                     alert("Commande enregistrée ! Redirection vers le paiement...");
+                     // C'est ici qu'on redirigera vers FedaPay ou CinetPay plus tard
+                     console.log("ID de commande :", resultat.commandeId);
+            
+                     // Pour l'instant, on finit quand même sur WhatsApp pour ne pas bloquer le client
+                     envoyerCommandeWhatsApp(); 
+                } else {
+                     alert("Erreur : " + resultat.message);
+                 }
+            } catch (error) {
+                 console.error("Erreur lors de la commande:", error);
+            }
+         }
 
         chargerMarche();
     </script>
