@@ -44,4 +44,33 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Route de notification (Webhook) : POST /api/orders/webhook
+router.post('/webhook', async (req, res) => {
+    try {
+        // 1. On reçoit les infos du paiement (le format dépend de FedaPay/CinetPay)
+        const { status, orderId, transactionId } = req.body;
+
+        if (status === 'approved' || status === 'SUCCESS') {
+            // 2. On cherche la commande dans MongoDB
+            const commande = await Order.findById(orderId);
+
+            if (commande) {
+                // 3. On met à jour le statut
+                commande.statut = 'payé';
+                commande.paymentId = transactionId;
+                await commande.save();
+                
+                console.log(`✅ Paiement confirmé pour la commande ${orderId}`);
+            }
+        }
+
+        // On répond toujours "OK" à la plateforme de paiement
+        res.status(200).send('Notification reçue');
+
+    } catch (error) {
+        console.error("Erreur Webhook:", error.message);
+        res.status(500).send('Erreur');
+    }
+});
+
 module.exports = router;
