@@ -73,4 +73,16 @@ router.post('/webhook', async (req, res) => {
     }
 });
 
+// Voir les commandes reçues (pour l'agriculteur)
+router.get('/vendeur/:vendeurId', async (req, res) => {
+    try {
+        // On cherche les commandes qui contiennent au moins un produit de cet agriculteur
+        const commandes = await Order.find({ 'produits.vendeur': req.params.vendeurId })
+                                     .populate('acheteur', 'nom telephone adresse');
+        res.json(commandes);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports = router;
