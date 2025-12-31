@@ -33,27 +33,17 @@
 </div>
 
 <script>
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    const loginForm = document.getElementById('loginForm');
+    const errorDiv = document.getElementById('error-msg');
+
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const errorDiv = document.getElementById('error-msg');
+        errorDiv.style.display = 'none';
         
         const credentials = {
             email: document.getElementById('email').value,
             motDePasse: document.getElementById('motDePasse').value
         };
-        // ... dans ton fetch de login
-        const resultat = await response.json();
-
-            if (response.ok) {
-                   // On enregistre tout ce dont on a besoin pour le design dynamique
-                   localStorage.setItem('token', resultat.token);
-                   localStorage.setItem('userId', resultat.userId);
-                   localStorage.setItem('userName', resultat.nom); // Nouveau
-                   localStorage.setItem('userPhone', resultat.telephone); // Nouveau
-
-                   alert("Bienvenue " + resultat.nom);
-                   window.location.href = "dashboard.html"; // Redirection directe vers l'espace pro
-            }
 
         try {
             const response = await fetch('/api/auth/login', {
@@ -65,19 +55,28 @@
             const data = await response.json();
 
             if (response.ok) {
-                // ✅ LE MOMENT CLÉ : On stocke le Token et l'ID dans le navigateur
+                // 1. On enregistre les informations essentielles
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('userId', data.utilisateur.id);
                 localStorage.setItem('userName', data.utilisateur.nom);
+                localStorage.setItem('userRole', data.utilisateur.role);
 
-                alert("Bonjour " + data.utilisateur.nom + " ! Redirection...");
-                window.location.href = "/"; // Retour à l'accueil
+                alert("Heureux de vous revoir, " + data.utilisateur.nom + " !");
+
+                // 2. Redirection intelligente
+                if (data.utilisateur.role === 'agriculteur') {
+                    window.location.href = "dashboard.html";
+                } else {
+                    window.location.href = "index.html";
+                }
             } else {
                 errorDiv.style.display = 'block';
-                errorDiv.innerText = data.erreur || "Erreur de connexion";
+                errorDiv.innerText = data.erreur || "Email ou mot de passe incorrect";
             }
         } catch (err) {
             console.error(err);
+            errorDiv.style.display = 'block';
+            errorDiv.innerText = "Le serveur ne répond pas. Vérifiez votre connexion.";
         }
     });
 </script>
