@@ -118,6 +118,30 @@ async function changerStatut(id, statutActuel) {
     chargerMesProduits();
 }
 
+// MODIFIER UN PRODUIT (Prix ou Statut)
+router.put('/:id', async (req, res) => {
+    try {
+        const { prix, statut } = req.body;
+        const produitModifie = await Product.findByIdAndUpdate(
+            req.params.id, 
+            { prix, statut }, 
+            { new: true }
+        );
+        res.json(produitModifie);
+    } catch (error) {
+        res.status(500).json({ message: "Erreur lors de la modification" });
+    }
+});
+
+// SUPPRIMER UN PRODUIT
+router.delete('/:id', async (req, res) => {
+    try {
+        await Product.findByIdAndDelete(req.params.id);
+        res.json({ message: "Produit supprimé avec succès" });
+    } catch (error) {
+        res.status(500).json({ message: "Erreur lors de la suppression" });
+    }
+});
         chargerMesProduits();
     </script>
 </body>
