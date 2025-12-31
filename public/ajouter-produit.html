@@ -38,55 +38,51 @@
 </div>
 
 <script>
-    // On récupère l'ID stocké lors de la connexion
+  // 1. Récupération des infos de connexion
 const savedId = localStorage.getItem('userId');
+const token = localStorage.getItem('token');
 
-// Si l'utilisateur n'est pas connecté, on le renvoie vers le login
-if (!savedId) {
+if (!savedId || !token) {
     alert("Merci de vous connecter d'abord !");
     window.location.href = "login.html";
 } else {
-    // On remplit automatiquement le champ caché
+    // On remplit le champ caché
     document.getElementById('agriculteurId').value = savedId;
 }
-    document.getElementById('productForm').addEventListener('submit', async (e) => {
-        e.preventDefault(); // Empêche la page de se recharger
 
-        const donnees = {
-            nom: document.getElementById('nom').value,
-            description: document.getElementById('description').value,
-            prix: document.getElementById('prix').value,
-            unite: document.getElementById('unite').value,
-            quantite: document.getElementById('quantite').value,
-            image: document.getElementById('image').value,
-            agriculteurId: document.getElementById('agriculteurId').value
-        };
-    function filtrerParCategorie(cat) {
-         if (cat === 'Tous') {
-             afficherProduits(tousLesProduits);
-         } else {
-             const filtres = tousLesProduits.filter(p => p.categorie === cat);
-             afficherProduits(filtres);
-         }
-    }
-        const response = await fetch('/api/products/add', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('token') // On présente le badge !
-            },
-            body: JSON.stringify(donnees)
-        });
+// 2. Envoi du formulaire
+document.getElementById('productForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-        const resultat = await response.json();
-        
-        if (response.ok) {
-            alert("Bravo ! Produit ajouté au marché.");
-            window.location.href = "/"; // Redirige vers l'accueil
-        } else {
-            alert("Erreur : " + resultat.erreur);
-        }
+    const donnees = {
+        nom: document.getElementById('nom').value,
+        description: document.getElementById('description').value,
+        prix: document.getElementById('prix').value,
+        unite: document.getElementById('unite').value,
+        quantite: document.getElementById('quantite').value,
+        // On met une image par défaut si le champ n'existe pas encore
+        image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=500", 
+        agriculteurId: document.getElementById('agriculteurId').value
+    };
+
+    const response = await fetch('/api/products/add', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(donnees)
     });
+
+    const resultat = await response.json();
+    
+    if (response.ok) {
+        alert("Bravo ! Produit ajouté au marché.");
+        window.location.href = "index.html"; 
+    } else {
+        alert("Erreur : " + (resultat.erreur || resultat.message));
+    }
+});
    
 </script>
 
