@@ -50,7 +50,10 @@
                 alert("Compte créé ! Connectez-vous maintenant.");
                 window.location.href = "login.html";
             } else {
-                alert("Erreur lors de l'inscription");
+                // On récupère le message d'erreur envoyé par le serveur
+                const errorData = await response.json();
+                alert("Erreur : " + errorData.erreur); // <--- Affiche la vraie cause
+                console.log("Détail technique :", errorData);
             }
         });
     </script>
