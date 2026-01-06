@@ -110,6 +110,26 @@
             `;
         }
 
+    function gererMenu() {
+         const userName = localStorage.getItem('userName');
+         const navLogin = document.getElementById('nav-login');
+         const userNameDisplay = document.getElementById('user-name');
+
+      if (userName) {
+        // L'utilisateur est connecté
+         navLogin.innerHTML = '<a href="#" onclick="deconnexion()" style="color: #e74c3c; text-decoration: none; margin-left: 15px;">Déconnexion</a>';
+        userNameDisplay.innerText = "👋 " + userName;
+        }
+    }
+
+    function deconnexion() {
+         localStorage.clear(); // On vide les badges
+         window.location.href = "login.html"; // Retour au login
+    }
+
+    // On lance la vérification au chargement de la page
+     gererMenu();
+
         function deconnexion() {
             localStorage.clear();
             window.location.reload();
