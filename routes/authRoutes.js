@@ -1,60 +1,60 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User'); // On importe notre plan de construction
+const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+// On garde bcrypt uniquement pour la comparaison du login
+const bcrypt = require('bcryptjs'); 
 
-// Route pour l'inscription : POST http://localhost:4000/api/auth/register
+// Route pour l'inscription
 router.post('/register', async (req, res) => {
     try {
-        // 1. On récupère les données envoyées par l'utilisateur
-        const { nom, email, motDePasse, role, adresse } = req.body;
+        const { nom, email, telephone, motDePasse, role, adresse } = req.body;
 
-        // 2. On crée un nouvel utilisateur avec ces données
+        // On crée l'utilisateur SIMPLEMENT. 
+        // Le modèle s'occupera de hacher 'motDePasse' automatiquement.
         const nouvelUtilisateur = new User({
             nom,
             email,
-            motDePasse,
+            telephone,
+            motDePasse, // On l'envoie "en clair" au modèle
             role,
             adresse
         });
 
-        // 3. On enregistre dans MongoDB
         await nouvelUtilisateur.save();
 
-        // 4. On répond au client que ça a marché !
         res.status(201).json({ 
             message: "Utilisateur créé avec succès !",
             utilisateur: { nom, email, role } 
         });
 
     } catch (error) {
-        // En cas d'erreur (ex: email déjà utilisé)
-        res.status(400).json({ message: "Erreur lors de l'inscription", erreur: error.message });
-    }
+    // Cela va afficher l'erreur détaillée dans ton terminal noir
+    console.log("DÉTAIL DE L'ERREUR :");
+    console.log(error); 
+    res.status(400).json({ message: "Erreur lors de l'inscription", erreur: error.message });
+}
 });
 
-// Route de Connexion : POST http://localhost:4000/api/auth/login
+// Route de Connexion
 router.post('/login', async (req, res) => {
     try {
         const { email, motDePasse } = req.body;
 
-        // 1. Chercher l'utilisateur par son email
         const utilisateur = await User.findOne({ email });
         if (!utilisateur) {
             return res.status(400).json({ erreur: "Utilisateur non trouvé" });
         }
 
-        // 2. Vérifier si le mot de passe est correct
+        // Ici bcrypt est indispensable pour comparer
         const motDePasseValide = await bcrypt.compare(motDePasse, utilisateur.motDePasse);
         if (!motDePasseValide) {
             return res.status(400).json({ erreur: "Mot de passe incorrect" });
         }
 
-        // 3. Créer le "Badge" (Token)
         const token = jwt.sign(
             { id: utilisateur._id, role: utilisateur.role },
-            "NOTRE_CLE_SECRETE_TRES_LONGUE", // On sécurisera ça plus tard
+            process.env.JWT_SECRET || "NOTRE_CLE_SECRETE_TRES_LONGUE",
             { expiresIn: '24h' }
         );
 
