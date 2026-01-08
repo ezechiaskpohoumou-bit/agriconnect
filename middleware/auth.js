@@ -2,10 +2,18 @@ const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
     try {
-        // Pour l'instant on simule une connexion pour que ton site s'affiche
-        req.auth = { userId: "123" }; 
+        // 1. Récupérer le token dans l'en-tête de la requête
+        const token = req.headers.authorization.split(' ')[1];
+        
+        // 2. Vérifier si le token est valide
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // 3. Ajouter les infos de l'utilisateur à la requête pour la suite
+        req.auth = { userId: decodedToken.id };
+        
+        // 4. On laisse passer à l'étape suivante
         next();
     } catch (error) {
-        res.status(401).json({ message: 'Requête non authentifiée' });
+        res.status(401).json({ erreur: "Requête non authentifiée !" });
     }
 };
