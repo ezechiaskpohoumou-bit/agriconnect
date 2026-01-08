@@ -69,4 +69,33 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// GET /api/auth/me
+router.get('/me', auth, async (req, res) => {
+    try {
+        // On cherche l'utilisateur mais on ne renvoie PAS son mot de passe (select('-password'))
+        const user = await User.findById(req.auth.userId).select('-password');
+        if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+        
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json({ erreur: error.message });
+    }
+});
+
+// PUT /api/auth/update
+router.put('/update', auth, async (req, res) => {
+    try {
+        const { nom, telephone, photo } = req.body;
+        
+        const userMisAJour = await User.findByIdAndUpdate(
+            req.auth.userId,
+            { nom, telephone, photo },
+            { new: true } // Renvoie l'objet modifié
+        ).select('-password');
+
+        res.status(200).json({ message: "Profil mis à jour !", user: userMisAJour });
+    } catch (error) {
+        res.status(500).json({ erreur: "Erreur lors de la mise à jour" });
+    }
+});
 module.exports = router;
