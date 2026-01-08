@@ -8,19 +8,16 @@ const orderSchema = new mongoose.Schema({
     },
     produits: [{
         produit: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-        nom: String,
-        prix: Number,
-        quantite: { type: Number, default: 1 },
-        prixUnitaire: Number
+        quantite: { type: Number, default: 1 }, // <--- Vérifie cette virgule
+        prixUnitaire: { type: Number }           // <--- Et ici
     }],
     montantTotal: { type: Number, required: true },
-    transactionId: { type: String }, // L'identifiant donné par CinetPay/FedaPay
     statut: { 
         type: String, 
-        enum: ['PENDING', 'SUCCESS', 'FAILED', 'CANCELLED'], 
-        default: 'PENDING' 
+        enum: ['en attente', 'payé', 'annulé'], 
+        default: 'en attente' 
     },
-    paymentId: { type: String }, // ID de la transaction chez le partenaire (FedaPay, etc.)
+    paymentId: { type: String },
     dateCommande: { type: Date, default: Date.now }
 });
 
