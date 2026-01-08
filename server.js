@@ -2,12 +2,16 @@
 require('dotenv').config();
 
 // 2. Importer les dépendances
-const express = require('express');
-const mongoose = require('mongoose');
-const authRoutes = require('./routes/authRoutes');
-const productRoutes = require('./routes/productRoutes');
 
-// 3. Créer l'application Express
+const Produit = require('./models/Product'); // Vérifie bien le nom de ton fichier dans le dossier models
+const express = require('express');
+const dotenv = require('dotenv');
+const mongoose = require('mongoose');
+const orderRoutes = require('./routes/orderRoutes'); // Importation de la route
+const authRoutes = require('./routes/authRoutes'); // Ajoute cette ligne !
+const productRoutes = require('./routes/productRoutes'); // <--- La pièce manquante !
+dotenv.config();
+
 const app = express();
 
 // --- Configuration du Port ---
@@ -19,10 +23,22 @@ app.use(express.json());
 app.use(express.static('public'));
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
+
 
 // --- Exemple de Route (pour tester le serveur) ---
-app.get('/', (req, res) => {
-    res.status(200).json({ message: 'Bienvenue sur AgriConnect API ! Le serveur fonctionne.' });
+app.get('/api/produits/:categorie', async (req, res) => {
+    try {
+        const cat = req.params.categorie;
+        let query = {};
+        if (cat !== 'tous') {
+            query.categorie = cat;
+        }
+        const produits = await Produit.find(query);
+        res.json(produits);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
 });
 
 
@@ -39,4 +55,9 @@ mongoose.connect(process.env.MONGO_URI)
     .catch((error) => {
         // Si la connexion échoue
         console.error('❌ ERREUR DE CONNEXION À MONGODB :', error.message);
+    });
+    .catch((error) => {
+        // Si la connexion échoue
+        console.error('❌ ERREUR DE CONNEXION À MONGODB :', error.message);
+
     });
